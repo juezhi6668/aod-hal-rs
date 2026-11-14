@@ -1,0 +1,32 @@
+# vendor.oplus.hardware.displaypanelfeature 的 SELinux 策略
+# 放到 device/<vendor>/<device>/sepolicy/ 下，并在 BoardConfig.mk 里
+#   BOARD_VENDOR_SEPOLICY_DIRS += device/<vendor>/<device>/sepolicy
+
+type hal_displaypanelfeature, domain;
+type hal_displaypanelfeature_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(hal_displaypanelfeature)
+
+# AIDL 服务的注册 / 查找
+type hal_displaypanelfeature_service, service_manager_type;
+allow hal_displaypanelfeature hal_displaypanelfeature_service:service_manager { add find };
+
+# binder 通信
+binder_use(hal_displaypanelfeature)
+binder_call(hal_displaypanelfeature, hal_displaypanelfeature)
+
+# 允许被 system_server / systemui 调
+allow system_server hal_displaypanelfeature:binder { call transfer };
+allow system_app hal_displaypanelfeature:binder { call transfer };
+
+# 面板节点（目标机没有这些节点时，下面的规则不会命中，无害）
+allow hal_displaypanelfeature sysfs_oplus_display:dir search;
+allow hal_displaypanelfeature sysfs_oplus_display:file rw_file_perms;
+allow hal_displaypanelfeature oplus_display_device:chr_file rw_file_perms;
+
+# 读配置
+allow hal_displaypanelfeature vendor_configs_file:file r_file_perms;
+
+# 如果 selinux 里还没有这两个类型，需要先在你的 sysfs 标签里定义：
+#   type sysfs_oplus_display, sysfs_type, fs_type;
+#   type oplus_display_device, dev_type;

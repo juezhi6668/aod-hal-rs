@@ -1,0 +1,42 @@
+// Rust HAL 服务本体
+// 建议路径：vendor/oplus/displaypanelfeature/service/Android.bp
+//
+// 注意：不再依赖 libbinder_rs / aidl rust backend。
+// src/ndk.rs 直接对 libbinder_ndk 的 C API 做 FFI，
+// 所以这里只要 shared_libs 里给上 libbinder_ndk / liblog 就行。
+
+rust_binary {
+    name: "vendor.oplus.hardware.displaypanelfeature-service",
+    crate_name: "displaypanelfeature_service",
+    srcs: [
+        "src/main.rs",
+        "src/ndk.rs",
+        "src/config.rs",
+        "src/panel.rs",
+    ],
+    vendor: true,
+    stem: "vendor.oplus.hardware.displaypanelfeature-service",
+    compile_multilib: "64",
+
+    rustlibs: [
+        // AOSP 里 log crate 的模块名是 liblog_rs
+        "liblog_rs",
+    ],
+
+    shared_libs: [
+        "libbinder_ndk",
+        "liblog",
+    ],
+
+    init_rc: ["displaypanelfeature-service.rc"],
+    vintf_fragments: ["manifest_oplus_displaypanelfeature_aidl.xml"],
+
+    required: ["displaypanelfeature.conf"],
+}
+
+prebuilt_etc {
+    name: "displaypanelfeature.conf",
+    src: "displaypanelfeature.conf",
+    filename: "displaypanelfeature.conf",
+    vendor: true,
+}

@@ -1,0 +1,35 @@
+# Soong 编译不看这个文件；这里用于 WSL 里用 cargo 交叉编译出真机二进制。
+#
+#   cargo test                                            # 只测纯逻辑层
+#   cargo build --release --features hal --target aarch64-linux-android
+#
+# hal 这个 feature 是必要的：main.rs 里有 #[link(name = "binder_ndk")]，
+# 在 host(x86_64-linux) 上根本链不到，所以默认不编译 bin。
+
+[package]
+name = "displaypanelfeature-service"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "displaypanelfeature_core"
+path = "src/lib.rs"
+
+[[bin]]
+# cargo 不允许 crate 名带点，所以这里用下划线名，
+# 真正的文件名由 build-in-wsl.sh 拷成
+# vendor.oplus.hardware.displaypanelfeature-service
+name = "displaypanelfeature_service"
+path = "src/main.rs"
+required-features = ["hal"]
+
+[features]
+default = []
+hal = []
+
+[dependencies]
+log = "0.4"
+
+[profile.release]
+strip = true
+opt-level = "s"

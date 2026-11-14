@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 与 ROM 里 odm/etc/vintf/manifest/manifest_oplus_displaypanelfeature_aidl.xml 保持一致 -->
+<manifest version="1.0" type="device">
+    <hal format="aidl">
+        <name>vendor.oplus.hardware.displaypanelfeature</name>
+        <version>1</version>
+        <fqname>IDisplayPanelFeature/default</fqname>
+    </hal>
+</manifest>

@@ -1,0 +1,6 @@
+# file_contexts
+/vendor/bin/hw/vendor\.oplus\.hardware\.displaypanelfeature-service   u:object_r:hal_displaypanelfeature_exec:s0
+/vendor/etc/displaypanelfeature\.conf                                u:object_r:vendor_configs_file:s0
+
+# service_contexts  (AIDL 服务走 service_contexts，不是 hwservice_contexts)
+vendor.oplus.hardware.displaypanelfeature.IDisplayPanelFeature/default   u:object_r:hal_displaypanelfeature_service:s0

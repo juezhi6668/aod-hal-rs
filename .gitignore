@@ -1,0 +1,17 @@
+# Rust 构建产物
+service/target/
+service/target-libs/
+
+# 编译好的二进制（用 GitHub Release 发布，别塞进 git）
+out/
+*.so
+
+# 临时 / 本地文件
+*.log
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# 本地私有配置覆盖（公共配置 displaypanelfeature.conf 照常提交）
+*.local.conf

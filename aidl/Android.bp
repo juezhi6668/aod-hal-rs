@@ -1,0 +1,43 @@
+// AIDL 定义：vendor.oplus.hardware.displaypanelfeature
+//
+// 放进 AOSP 树后建议路径：vendor/oplus/displaypanelfeature/aidl/Android.bp
+//
+// 说明：HAL 本体（service/src/ndk.rs）直接 FFI 调 libbinder_ndk，不用 aidl codegen。
+// 这个模块只用来：
+//   1) 给 VINTF 校验提供接口定义
+//   2) 以后想改成 codegen 方式时，接口已经现成
+
+aidl_interface {
+    name: "vendor.oplus.hardware.displaypanelfeature",
+    owner: "oplus",
+    vendor_available: true,
+    srcs: [
+        "vendor/oplus/hardware/displaypanelfeature/*.aidl",
+    ],
+    local_include_dir: ".",
+    stability: "vintf",
+    backend: {
+        // HAL 不用 codegen，只留 ndk 给框架侧做类型校验
+        rust: {
+            enabled: false,
+        },
+        ndk: {
+            enabled: true,
+        },
+        java: {
+            enabled: false,
+        },
+        cpp: {
+            enabled: false,
+        },
+    },
+    versions_with_info: [
+        {
+            version: "1",
+            imports: [],
+        },
+    ],
+}
+
+// 老一点的 AOSP（Android 12/13）没有 versions_with_info，改用：
+//     versions: ["1"],

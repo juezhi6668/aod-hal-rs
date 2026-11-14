@@ -1,0 +1,12 @@
+service displaypanelfeature-service /vendor/bin/hw/vendor.oplus.hardware.displaypanelfeature-service
+    class hal animation
+    user system
+    group system
+
+# 如果目标机内核真的有 oplus_display 节点，这几行能让服务有权限写；
+# 没有节点时 chown 会失败，init 只打 warning，不影响服务启动。
+on early-boot
+    chown system system /dev/oplus_display
+    chmod 0644 /dev/oplus_display
+    chown system system /sys/kernel/oplus_display/aod_light_mode_set
+    chmod 0644 /sys/kernel/oplus_display/aod_light_mode_set
