@@ -8,6 +8,7 @@
 //!     "vendor.oplus.hardware.displaypanelfeature.IDisplayPanelFeature/default"
 
 mod config;
+mod cwb;
 mod ndk;
 mod panel;
 
@@ -256,6 +257,12 @@ fn main() {
             "registered {}",
             String::from_utf8_lossy(&SERVICE_NAME[..SERVICE_NAME.len() - 1])
         );
+
+        // 同一进程再注册一个 cwb 服务：原机上它本来就内嵌在这个 HAL 里。
+        // 只提供接口存在性，具体说明见 cwb.rs。
+        if !cwb::register() {
+            log::warn!("cwb service not registered, continuing anyway");
+        }
 
         ABinderProcess_setThreadPoolMaxThreadCount(4);
         ABinderProcess_startThreadPool();

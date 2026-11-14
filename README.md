@@ -274,3 +274,58 @@ strict = 1
 `src/panel.rs` 和 `src/config.rs` 没有任何 binder 依赖，纯 std。
 换 C++ 只需照抄逻辑，胶水层用 `BnDisplayPanelFeature`（NDK backend），
 跟 `~/aidlkit` 里 light HAL 的构建方式完全一样。
+
+
+---
+
+## 顺带补上的：`vendor.oplus.hardware.cwb.ICwbService`
+
+本 ROM 的 `/system_ext/bin/theia_screen_monitor` 会以 **约 3.5 次/秒** 的频率请求
+`vendor.oplus.hardware.cwb.ICwbService/default`，而这个 HAL 不存在，servicemanager
+只能反复回：
+
+```
+Tried to start aidl service vendor.oplus.hardware.cwb.ICwbService/default
+as a lazy service, but was unable to.
+```
+
+十分钟能刷两千多条日志。
+
+查原机发现：**cwb 服务本来就内嵌在 `displaypanelfeature-service` 里**（同一个进程
+注册两个接口），所以这里照同样做法，在 `src/cwb.rs` 里注册第二个服务。
+
+实现范围刻意收窄：
+
+| 方法 | 处理 |
+|---|---|
+| `getInterfaceVersion` | 返回 2 |
+| `getInterfaceHash` | 返回空串 |
+| 其余 14 个 | `STATUS_UNKNOWN_TRANSACTION` |
+
+原因：cwb 的 AIDL 牵涉 `Rect` / `Error` / `Rgb` / `Histogram` 四个自定义 parcelable
+和共享内存（`ScopedFileDescriptor`），而本 ROM 没有它的 Java stub，parcelable 布局
+无法可靠推导。硬猜布局只会让客户端拿到半截数据直接崩，不如明确报「不支持」。
+
+### 效果
+
+```
+重试日志：2149 条 → 1 条（残留的是服务启动前的那条）
+客户端：TheiaScreenMonitor: got CwbService_aidl
+异常：无 UNKNOWN_TRANSACTION 报错
+```
+
+theia 拿到服务后继续往下走，现在停在 `Waiting for OCenterService`（那是系统服务，
+不是 HAL，与本项目无关）。
+
+### 注意
+
+替换 `/odm/bin/hw/vendor.oplus.hardware.displaypanelfeature-service` 后**必须重新
+`chcon`**，否则 `cp` 会把 SELinux 标签冲成 `vendor_file`，init 直接拒绝启动：
+
+```bash
+chcon u:object_r:hal_sensors_default_exec:s0 \
+    /vendor/odm/bin/hw/vendor.oplus.hardware.displaypanelfeature-service
+```
+
+（本 ROM 策略里没有 `oplus_hal_displaypanelfeature_exec` 这个类型，只能用
+`hal_sensors_default_exec` 兜底；Permissive 下功能不受影响。）
